@@ -56,6 +56,20 @@ export class TodoAccess {
 
     return todo
   }
+
+  async deleteTodo(id: string): Promise<object> {
+    console.log("Getting all todos")
+    await this.docClient.delete({
+      TableName: this.todosTable,
+      Key:{
+          "id": id
+      },
+      ReturnValues: "ALL_OLD"
+    }).promise()
+
+    return {}
+
+  }
   
 }
 

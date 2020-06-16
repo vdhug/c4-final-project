@@ -16,25 +16,26 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   try {
     const item = await updateTodo(todoId, updatedTodo, jwtToken);
     return {
-        statusCode: 201,
-        headers: {
-            'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({
-            item
-        })
+      statusCode: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        item
+      })
     }
-    
+
   } catch (error) {
     return {
       statusCode: 400,
       headers: {
-          'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*'
       },
       body: JSON.stringify({
-          error
+        error
       })
+    }
+
   }
-  }
-  
+
 }

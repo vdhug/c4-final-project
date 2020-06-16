@@ -45,3 +45,13 @@ export async function updateTodo(
     done: updateTodoRequest.done
   })
 }
+
+export async function deleteTodo(
+  itemId: string,
+  jwtToken: string
+): Promise<object> {
+
+  // const userId = getUserId(jwtToken)
+
+  return await todoAccess.deleteTodo(itemId)
+}
