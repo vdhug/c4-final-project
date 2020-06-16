@@ -3,6 +3,7 @@ import * as AWS  from 'aws-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem';
+import { TodoUpdate } from '../models/TodoUpdate';
 
 export class TodoAccess {
 
@@ -31,6 +32,31 @@ export class TodoAccess {
 
     return todo
   }
+
+  async updateTodo(id: string, todo: TodoUpdate): Promise<TodoUpdate> {
+    console.log("Getting all todos")
+    await this.docClient.update({
+      TableName: this.todosTable,
+      Key:{
+          "id": id
+      },
+      UpdateExpression: 'SET #name = :name, #dueDate=:dueDate, #done=:done',
+      ExpressionAttributeValues: {
+        ":name": todo.name,
+        ":dueDate": todo.dueDate,
+        ":done": todo.done
+      },
+      ExpressionAttributeNames: {
+        "#name": "name",
+        "#dueDate": "dueDate",
+        "#done": "done"
+      },
+      ReturnValues:"UPDATED_NEW"
+    }).promise()
+
+    return todo
+  }
+  
 }
 
 function createDynamoDBClient() {
