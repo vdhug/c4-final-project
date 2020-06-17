@@ -42,11 +42,15 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - dynamodb:Query
         - dynamodb:PutItem
+        - dynamodb:UpdateItem
         - dynamodb:GetItem
         - dynamodb:DeleteItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_ID_INDEX}
     - Effect: Allow
       Action:
         - s3:PutObject
@@ -66,8 +70,8 @@ functions:
     events:
       - http:
           method: get
-          path: todos
           authorizer: Auth
+          path: todos
           cors: true
 
   # TODO: Configure this function
@@ -138,7 +142,7 @@ resources:
       Type: AWS::S3::BucketPolicy
       Properties:
         PolicyDocument:
-          Id: MyPolicy
+          Id: C4FinalProject
           Version: "2012-10-17"
           Statement:
             - Sid: PublicReadForGetBucketObjects

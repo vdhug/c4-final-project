@@ -34,7 +34,7 @@ export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGat
   try {
     const item = await updateTodo(todoId, jwtToken, updatedTodo);
     return {
-      statusCode: 201,
+      statusCode: 200,
       body: JSON.stringify({
         item
       })
