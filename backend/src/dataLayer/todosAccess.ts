@@ -50,9 +50,6 @@ export class TodoAccess {
         }
       }).promise();
 
-
-      console.log(result)
-      console.log(result.Item)
       if (result.Item) {
         return true;
       }

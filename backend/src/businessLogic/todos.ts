@@ -7,6 +7,8 @@ import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { TodoUpdate } from '../models/TodoUpdate';
 import { getUserId} from '../auth/utils';
 
+const bucketName = process.env.TODOS_S3_BUCKET;
+
 const todoAccess = new TodoAccess()
 
 export async function getAllTodos(
@@ -39,7 +41,8 @@ export async function createTodo(
     createdAt: new Date().toISOString(),
     name: createTodoRequest.name,
     dueDate: createTodoRequest.dueDate,
-    done: false
+    done: false,
+    attachmentUrl: `https://${bucketName}.s3.amazonaws.com/${itemId}`
   })
 }
 

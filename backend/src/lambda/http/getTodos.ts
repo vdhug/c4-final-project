@@ -1,10 +1,12 @@
 import 'source-map-support/register'
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
 import { getAllTodos } from '../../businessLogic/todos';
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const authorization = event.headers.Authorization;
   const split = authorization.split(' ')
   const jwtToken = split[1];
@@ -13,12 +15,16 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   return {
       statusCode: 200,
-      headers: {
-          'Access-Control-Allow-Origin': '*'
-      },
       body: JSON.stringify({
           items: todos
       })
   }
   
-}
+})
+
+handler.use(
+    cors({
+        credentials: true
+    })
+)
+

@@ -1,9 +1,11 @@
 import 'source-map-support/register'
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { deleteTodo, todoExists } from '../../businessLogic/todos';
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId
 
   const authorization = event.headers.Authorization;
@@ -16,9 +18,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   if (!exist) {
     return {
       statusCode: 404,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: JSON.stringify({
         "message": "Item not found"
       })
@@ -30,9 +29,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     const item = await deleteTodo(todoId, jwtToken);
     return {
       statusCode: 201,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: JSON.stringify({
         item
       })
@@ -41,13 +37,16 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   } catch (error) {
     return {
       statusCode: 400,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: JSON.stringify({
         error
       })
     }
 
   }
-}
+})
+
+handler.use(
+  cors({
+      credentials: true
+  })
+)
