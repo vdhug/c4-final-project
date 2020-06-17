@@ -35,21 +35,23 @@ provider:
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
+    TODO_ID_INDEX: TodoIdIndex
 
   iamRoleStatements:
     - Effect: Allow
       Action:
         - dynamodb:Scan
-        # - dynamodb:PutItem
-        # - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
 
 
 functions:
 
-  # Auth:
-  #   handler: src/lambda/auth/auth0Authorizer.handler
+  Auth:
+    handler: src/lambda/auth/auth0Authorizer.handler
 
   # TODO: Configure this function
   GetTodos:
@@ -97,14 +99,27 @@ functions:
 
 resources:
   Resources:
-    TodosDynamoDBTable:
+    TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: id
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: dueDate
+            AttributeType: S
+          - AttributeName: todoId
             AttributeType: S
         KeySchema:
-          - AttributeName: id
+          - AttributeName: userId
             KeyType: HASH
+          - AttributeName: dueDate
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TODO_ID_INDEX}
+            KeySchema:
+            - AttributeName: todoId
+              KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}

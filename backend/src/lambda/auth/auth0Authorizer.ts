@@ -1,77 +1,79 @@
+
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
 import 'source-map-support/register'
+import { verify } from 'jsonwebtoken';
+import { JwtToken } from '../../auth/JwtToken';
 
-import { verify, decode } from 'jsonwebtoken'
-import { createLogger } from '../../utils/logger'
-import Axios from 'axios'
-import { Jwt } from '../../auth/Jwt'
-import { JwtPayload } from '../../auth/JwtPayload'
+const cert = `-----BEGIN CERTIFICATE-----
+MIIC/zCCAeegAwIBAgIJZM5unLqDP8WIMA0GCSqGSIb3DQEBCwUAMB0xGzAZBgNV
+BAMTEnZkaHVnLnVzLmF1dGgwLmNvbTAeFw0yMDA2MTQxNjU3MDVaFw0zNDAyMjEx
+NjU3MDVaMB0xGzAZBgNVBAMTEnZkaHVnLnVzLmF1dGgwLmNvbTCCASIwDQYJKoZI
+hvcNAQEBBQADggEPADCCAQoCggEBAJyS00zxh17TGyC2hWLJOwIrMTBIcrHFa4/+
+wM1LTnPc+HxUuMWKr+tN6DME1vAnnEHDr6aAM++fJpwdpS+lUHRlWmddOTbC214O
+5d4Mz3rju+WaJKmmaqmkPmUfPbSfHEgRQNSwPeI9DJDGKfDgRXkBm9m+X2Rtvsmj
+8abfWm5EIavnAw4Lt+Wxe38WYoE0FYfN+rS+ULmNrabOi95PJ1Jh+VOZlVwSyWSk
+266G5FwZb7KPtPi1SBLLAzD3WkVXtPOaLPtoSLL/NaYBI6mdQactq+UcZjfpcHEF
+KD3u3YI4zOXYdmkAAM67lzM8Mp1trfMPFgA/8g48e3N5gBa1jcECAwEAAaNCMEAw
+DwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUdOudlx13xEuT61ZMROWj4uDF3WAw
+DgYDVR0PAQH/BAQDAgKEMA0GCSqGSIb3DQEBCwUAA4IBAQCK6RalQACWAs8GdQTe
+yAK4Us7m5WQa5KMhBomrSSp7Q5wXFon8Z108T0Gatyi9q/j1vRUjRAdWobNDCMnl
+Cxn8LkEzpXeMVrsIm/yCYfBdmPASe/JOUaciOtzzqy2bOG3IxPBC8TyyN8SI5Ys1
+XJwMNarfrc7mobB/SZSynnr9xl+lvGJj0JACOweMSuLtLlLwMqSVexyWdt/htkFl
+sqoX+rjUXwfQ16XDC68YPIYEwnC47TiqsBa+wQMok9H1PTuIPu0F4j7fcapH9PTq
+SdTQnXhmxuWVaYosogjYRwLpvkfFcNCY3I9kloV7zt8y4fPpaMjamdNw66TXAU5T
+/7Ty
+-----END CERTIFICATE-----`
 
-const logger = createLogger('auth')
+export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
+  console.log("On authorizer")
+    try {
+        const decodedToken = verifyToken(event.authorizationToken)
 
-// TODO: Provide a URL that can be used to download a certificate that can be used
-// to verify JWT token signature.
-// To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
-const jwksUrl = '...'
-
-export const handler = async (
-  event: CustomAuthorizerEvent
-): Promise<CustomAuthorizerResult> => {
-  logger.info('Authorizing a user', event.authorizationToken)
-  try {
-    const jwtToken = await verifyToken(event.authorizationToken)
-    logger.info('User was authorized', jwtToken)
-
-    return {
-      principalId: jwtToken.sub,
-      policyDocument: {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Action: 'execute-api:Invoke',
-            Effect: 'Allow',
-            Resource: '*'
-          }
-        ]
-      }
+        return {
+            principalId: decodedToken.sub,
+            policyDocument: {
+                Version: '2012-10-17',
+                Statement: [
+                    {
+                        Action: 'execute-api:Invoke',
+                        Effect: 'Allow',
+                        Resource: '*'
+                    }
+                ]
+            }
+        }
+    } catch (e) {
+        console.log("User was not authorized", e.message);
+        
+        return {
+            principalId: 'user',
+            policyDocument: {
+                Version: '2012-10-17',
+                Statement: [
+                    {
+                        Action: 'execute-api:Invoke',
+                        Effect: 'Deny',
+                        Resource: '*'
+                    }
+                ]
+            }
+        }
     }
-  } catch (e) {
-    logger.error('User not authorized', { error: e.message })
-
-    return {
-      principalId: 'user',
-      policyDocument: {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Action: 'execute-api:Invoke',
-            Effect: 'Deny',
-            Resource: '*'
-          }
-        ]
-      }
-    }
-  }
 }
 
-async function verifyToken(authHeader: string): Promise<JwtPayload> {
-  const token = getToken(authHeader)
-  const jwt: Jwt = decode(token, { complete: true }) as Jwt
+function verifyToken (authHeader: string): JwtToken {
+  if (!authHeader)
+      throw new Error("No authorization header");
 
-  // TODO: Implement token verification
-  // You should implement it similarly to how it was implemented for the exercise for the lesson 5
-  // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  return undefined
-}
+  if (!authHeader.toLocaleLowerCase().startsWith('bearer '))
+      throw new Error("Invalid authorization header");
 
-function getToken(authHeader: string): string {
-  if (!authHeader) throw new Error('No authentication header')
+  const split = authHeader.split(' ');
+  const token = split[1];
 
-  if (!authHeader.toLowerCase().startsWith('bearer '))
-    throw new Error('Invalid authentication header')
-
-  const split = authHeader.split(' ')
-  const token = split[1]
-
-  return token
+  return verify(
+              token,           // Token from an HTTP header to validate
+              cert,            // A certificate copied from Auth0 website
+              { algorithms: ['RS256'] } // We need to specify that we use the RS256 algorithm
+            ) as JwtToken
 }

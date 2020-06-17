@@ -13,14 +13,14 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const jwtToken = split[1];
 
   try {
-    const newItem = await createTodo(newTodo, jwtToken);
+    const item = await createTodo(newTodo, jwtToken);
     return {
         statusCode: 201,
         headers: {
             'Access-Control-Allow-Origin': '*'
         },
         body: JSON.stringify({
-            newItem
+          item
         })
     }
   } catch (error) {

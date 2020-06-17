@@ -5,12 +5,15 @@ import { TodoAccess } from '../dataLayer/todosAccess'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { TodoUpdate } from '../models/TodoUpdate';
-// import { getUserId } from '../auth/utils'
+import { getUserId} from '../auth/utils';
 
 const todoAccess = new TodoAccess()
 
-export async function getAllTodos(): Promise<TodoItem[]> {
-  return todoAccess.getAllTodos()
+export async function getAllTodos(
+  jwtToken: string
+  ): Promise<TodoItem[]> {
+  const userId = getUserId(jwtToken);
+  return todoAccess.getAllTodos(userId)
 }
 
 export async function createTodo(
@@ -19,11 +22,11 @@ export async function createTodo(
 ): Promise<TodoItem> {
 
   const itemId = uuid.v4()
-  // const userId = getUserId(jwtToken)
+  const userId = getUserId(jwtToken);
 
   return await todoAccess.createTodo({
-    id: itemId,
-    userId: "123",
+    todoId: itemId,
+    userId: userId,
     createdAt: new Date().toISOString(),
     name: createTodoRequest.name,
     dueDate: createTodoRequest.dueDate,
