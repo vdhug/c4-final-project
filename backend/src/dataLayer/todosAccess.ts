@@ -37,12 +37,27 @@ export class TodoAccess {
     return todo
   }
 
-  async updateTodo(id: string, todo: TodoUpdate): Promise<TodoUpdate> {
+  async todoExists(todoId: string, userId: string) {
+    const result = await this.docClient
+      .get({
+        TableName: this.todosTable,
+        Key: {
+          "todoId": todoId,
+          "userId": userId
+        }
+      })
+      .promise()
+  
+    return !!result.Item
+  }
+  
+
+  async updateTodo(todoId: string, todo: TodoUpdate): Promise<TodoUpdate> {
     console.log("Getting all todos")
     await this.docClient.update({
       TableName: this.todosTable,
       Key:{
-          "id": id
+          "todoId": todoId
       },
       UpdateExpression: 'SET #name = :name, #dueDate=:dueDate, #done=:done',
       ExpressionAttributeValues: {
@@ -61,12 +76,12 @@ export class TodoAccess {
     return todo
   }
 
-  async deleteTodo(id: string): Promise<object> {
+  async deleteTodo(todoId: string): Promise<object> {
     console.log("Getting all todos")
     await this.docClient.delete({
       TableName: this.todosTable,
       Key:{
-          "id": id
+          "todoId": todoId
       },
       ReturnValues: "ALL_OLD"
     }).promise()

@@ -11,7 +11,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const jwtToken = split[1];
 
   try {
-    const item = await deleteTodo(todoId, jwtToken);
+    const item = await deleteTodo(todoId);
     return {
       statusCode: 200,
       headers: {

@@ -16,6 +16,14 @@ export async function getAllTodos(
   return todoAccess.getAllTodos(userId)
 }
 
+export async function todoExists(
+  todoId: string,
+  jwtToken: string
+  ): Promise<boolean> {
+  const userId = getUserId(jwtToken);
+  return todoAccess.todoExists(todoId, userId)
+}
+
 export async function createTodo(
   createTodoRequest: CreateTodoRequest,
   jwtToken: string
@@ -36,11 +44,8 @@ export async function createTodo(
 
 export async function updateTodo(
   itemId: string,
-  updateTodoRequest: UpdateTodoRequest,
-  jwtToken: string
+  updateTodoRequest: UpdateTodoRequest
 ): Promise<TodoUpdate> {
-
-  // const userId = getUserId(jwtToken)
 
   return await todoAccess.updateTodo(itemId, {
     name: updateTodoRequest.name,
@@ -50,11 +55,8 @@ export async function updateTodo(
 }
 
 export async function deleteTodo(
-  itemId: string,
-  jwtToken: string
+  itemId: string
 ): Promise<object> {
-
-  // const userId = getUserId(jwtToken)
 
   return await todoAccess.deleteTodo(itemId)
 }

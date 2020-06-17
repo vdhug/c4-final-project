@@ -60,6 +60,7 @@ functions:
       - http:
           method: get
           path: todos
+          authorizer: Auth
 
   # TODO: Configure this function
   CreateTodo:
@@ -68,6 +69,7 @@ functions:
       - http:
           method: post
           path: todos
+          authorizer: Auth
           cors: true
           request:
             schema:
@@ -80,14 +82,17 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
+          authorizer: Auth
 
   # # TODO: Configure this function
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
+    authorizer: Auth
     events:
       - http:
           method: delete
           path: todos/{todoId}
+          authorizer: Auth
 
   # # TODO: Configure this function
   # GenerateUploadUrl:
