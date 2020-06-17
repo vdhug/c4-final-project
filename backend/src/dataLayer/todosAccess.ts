@@ -9,7 +9,8 @@ export class TodoAccess {
 
   constructor(
     private readonly docClient: DocumentClient = createDynamoDBClient(),
-    private readonly todosTable = process.env.TODOS_TABLE,) {
+    private readonly todosTable = process.env.TODOS_TABLE,
+    private readonly todosIdIndex = process.env.TODOS_ID_INDEX,) {
   }
 
   async getAllTodos(userId: string): Promise<TodoItem[]> {
@@ -17,6 +18,7 @@ export class TodoAccess {
 
     const result = await this.docClient.query({
       TableName: this.todosTable,
+      IndexName: this.todosIdIndex,
       KeyConditionExpression: 'userId = :userId',
       ExpressionAttributeValues: {
         ':userId': userId
@@ -37,18 +39,21 @@ export class TodoAccess {
     return todo
   }
 
-  async todoExists(todoId: string, userId: string) {
-    const result = await this.docClient
-      .get({
-        TableName: this.todosTable,
-        Key: {
-          "todoId": todoId,
-          "userId": userId
-        }
-      })
-      .promise()
-  
-    return !!result.Item
+  async todoExists(todoId: string, userId: string): Promise<boolean> {
+    console.log(todoId, userId);
+
+    const result = await this.docClient.query({
+      TableName: this.todosTable,
+      IndexName: this.todosIdIndex,
+      KeyConditionExpression: 'userId = :userId and todoId = :todoId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':todoId': todoId
+      },
+      ScanIndexForward: false
+    }).promise()
+
+    return result.Count !== 0;
   }
   
 
@@ -57,7 +62,8 @@ export class TodoAccess {
     await this.docClient.update({
       TableName: this.todosTable,
       Key:{
-          "todoId": todoId
+          "todoId": todoId,
+          "userId": "google-oauth2|112580092865274357442"
       },
       UpdateExpression: 'SET #name = :name, #dueDate=:dueDate, #done=:done',
       ExpressionAttributeValues: {

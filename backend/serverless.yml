@@ -35,7 +35,7 @@ provider:
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
-    TODO_ID_INDEX: TodoIdIndex
+    TODOS_ID_INDEX: TodosIdIndex
 
   iamRoleStatements:
     - Effect: Allow
@@ -108,13 +108,17 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
+          - AttributeName: todoId
+            AttributeType: S
           - AttributeName: userId
             AttributeType: S
         KeySchema:
-          - AttributeName: userId
+          - AttributeName: todoId
             KeyType: HASH
+          - AttributeName: userId
+            KeyType: RANGE
         GlobalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.TODO_ID_INDEX}
+          - IndexName: ${self:provider.environment.TODOS_ID_INDEX}
             KeySchema:
             - AttributeName: userId
               KeyType: HASH
