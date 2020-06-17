@@ -41,29 +41,40 @@ export class TodoAccess {
 
   async todoExists(todoId: string, userId: string): Promise<boolean> {
     console.log(todoId, userId);
+    try {
+      const result = await this.docClient.get({
+        TableName: this.todosTable,
+        Key:{
+          "todoId": todoId,
+          "userId": userId
+        }
+      }).promise();
 
-    const result = await this.docClient.query({
-      TableName: this.todosTable,
-      IndexName: this.todosIdIndex,
-      KeyConditionExpression: 'userId = :userId and todoId = :todoId',
-      ExpressionAttributeValues: {
-        ':userId': userId,
-        ':todoId': todoId
-      },
-      ScanIndexForward: false
-    }).promise()
 
-    return result.Count !== 0;
+      console.log(result)
+      console.log(result.Item)
+      if (result.Item) {
+        return true;
+      }
+      else {
+        return false
+      }
+
+      
+    } catch (error) {
+      console.log("Error checking todo exist")
+      return false
+    }
   }
   
 
-  async updateTodo(todoId: string, todo: TodoUpdate): Promise<TodoUpdate> {
+  async updateTodo(userId: string, todoId: string, todo: TodoUpdate): Promise<TodoUpdate> {
     console.log("Getting all todos")
     await this.docClient.update({
       TableName: this.todosTable,
       Key:{
           "todoId": todoId,
-          "userId": "google-oauth2|112580092865274357442"
+          "userId": userId
       },
       UpdateExpression: 'SET #name = :name, #dueDate=:dueDate, #done=:done',
       ExpressionAttributeValues: {

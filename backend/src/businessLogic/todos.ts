@@ -20,6 +20,7 @@ export async function todoExists(
   todoId: string,
   jwtToken: string
   ): Promise<boolean> {
+  console.log("CHeck user exist")
   const userId = getUserId(jwtToken);
   return todoAccess.todoExists(todoId, userId)
 }
@@ -44,10 +45,12 @@ export async function createTodo(
 
 export async function updateTodo(
   itemId: string,
+  jwtToken: string,
   updateTodoRequest: UpdateTodoRequest
 ): Promise<TodoUpdate> {
 
-  return await todoAccess.updateTodo(itemId, {
+  const userId = getUserId(jwtToken);
+  return await todoAccess.updateTodo(userId, itemId, {
     name: updateTodoRequest.name,
     dueDate: updateTodoRequest.dueDate,
     done: updateTodoRequest.done

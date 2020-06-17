@@ -3,7 +3,7 @@ import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import { updateTodo } from '../../businessLogic/todos';
+import { updateTodo, todoExists } from '../../businessLogic/todos';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId
@@ -12,23 +12,28 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const authorization = event.headers.Authorization;
   const split = authorization.split(' ')
   const jwtToken = split[1];
+  
+  console.log("Update todo")
+  const exist = await todoExists(todoId, jwtToken);
 
-  // const exist = await todoExists(todoId, jwtToken);
-  // if (!exist) {
-  //   return {
-  //     statusCode: 400,
-  //     headers: {
-  //       'Access-Control-Allow-Origin': '*'
-  //     },
-  //     body: JSON.stringify({
-  //       "message": "Item not found"
-  //     })
-  //   }
-  // }
+  if (!exist) {
+    return {
+      statusCode: 404,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        "message": "Item not found"
+      })
+    }
+  }
 
+  console.log(exist)
+  console.log("Will go to update")
+  
 
   try {
-    const item = await updateTodo(todoId, updatedTodo);
+    const item = await updateTodo(todoId, jwtToken, updatedTodo);
     return {
       statusCode: 201,
       headers: {
