@@ -1,9 +1,14 @@
 import * as AWS  from 'aws-sdk'
-// import * as AWSXRay from 'aws-xray-sdk'
+import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem';
 import { TodoUpdate } from '../models/TodoUpdate';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('auth')
+
+const XAWS = AWSXRay.captureAWS(AWS);
 
 export class TodoAccess {
 
@@ -14,7 +19,7 @@ export class TodoAccess {
   }
 
   async getAllTodos(userId: string): Promise<TodoItem[]> {
-    console.log('Getting all todos');
+    logger.info("Getting all todos");
 
     const result = await this.docClient.query({
       TableName: this.todosTable,
@@ -30,7 +35,7 @@ export class TodoAccess {
   }
 
   async createTodo(todo: TodoItem): Promise<TodoItem> {
-    console.log("Getting all todos")
+    logger.info("Creating todo");
     await this.docClient.put({
       TableName: this.todosTable,
       Item: todo
@@ -40,7 +45,7 @@ export class TodoAccess {
   }
 
   async todoExists(todoId: string, userId: string): Promise<boolean> {
-    console.log(todoId, userId);
+    logger.info("Checking if todo exist");
     try {
       const result = await this.docClient.get({
         TableName: this.todosTable,
@@ -58,15 +63,16 @@ export class TodoAccess {
       }
 
       
-    } catch (error) {
-      console.log("Error checking todo exist")
+    } catch (e) {
+      logger.error('Todo not found', { error: e.message });
       return false
     }
   }
   
 
   async updateTodo(userId: string, todoId: string, todo: TodoUpdate): Promise<TodoUpdate> {
-    console.log("Getting all todos")
+    logger.info("Updating todo");
+
     await this.docClient.update({
       TableName: this.todosTable,
       Key:{
@@ -91,7 +97,7 @@ export class TodoAccess {
   }
 
   async deleteTodo(todoId: string, userId: string): Promise<object> {
-    console.log("Delete todo")
+    logger.info("Deleting todo");
     await this.docClient.delete({
       TableName: this.todosTable,
       Key:{
@@ -110,11 +116,11 @@ export class TodoAccess {
 function createDynamoDBClient() {
   if (process.env.IS_OFFLINE) {
     console.log('Creating a local DynamoDB instance')
-    return new AWS.DynamoDB.DocumentClient({
+    return new XAWS.DynamoDB.DocumentClient({
       region: 'localhost',
       endpoint: 'http://localhost:8000'
     })
   }
 
-  return new AWS.DynamoDB.DocumentClient()
+  return new XAWS.DynamoDB.DocumentClient()
 }

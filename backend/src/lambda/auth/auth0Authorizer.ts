@@ -3,6 +3,9 @@ import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
 import 'source-map-support/register'
 import { verify } from 'jsonwebtoken';
 import { JwtToken } from '../../auth/JwtToken';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('auth')
 
 const cert = `-----BEGIN CERTIFICATE-----
 MIIC/zCCAeegAwIBAgIJZM5unLqDP8WIMA0GCSqGSIb3DQEBCwUAMB0xGzAZBgNV
@@ -25,7 +28,9 @@ SdTQnXhmxuWVaYosogjYRwLpvkfFcNCY3I9kloV7zt8y4fPpaMjamdNw66TXAU5T
 -----END CERTIFICATE-----`
 
 export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
-  console.log("On authorizer")
+    
+  
+    logger.info("Checking authorization of user");
     try {
         const decodedToken = verifyToken(event.authorizationToken)
 
@@ -43,7 +48,7 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
             }
         }
     } catch (e) {
-        console.log("User was not authorized", e.message);
+        logger.error('User not authorized', { error: e.message });
         
         return {
             principalId: 'user',

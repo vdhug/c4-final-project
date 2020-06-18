@@ -22,7 +22,6 @@ export async function todoExists(
   todoId: string,
   jwtToken: string
   ): Promise<boolean> {
-  console.log("CHeck user exist")
   const userId = getUserId(jwtToken);
   return todoAccess.todoExists(todoId, userId)
 }

@@ -15,7 +15,6 @@ export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGat
   const split = authorization.split(' ')
   const jwtToken = split[1];
   
-  console.log("Update todo")
   const exist = await todoExists(todoId, jwtToken);
 
   if (!exist) {
@@ -26,10 +25,6 @@ export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGat
       })
     }
   }
-
-  console.log(exist)
-  console.log("Will go to update")
-  
 
   try {
     const item = await updateTodo(todoId, jwtToken, updatedTodo);
