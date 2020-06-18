@@ -34,6 +34,10 @@ export async function createTodo(
   const itemId = uuid.v4()
   const userId = getUserId(jwtToken);
 
+  if (createTodoRequest.name.trim() === "") {
+    throw Error("Name of TODO is required");
+  }
+
   return await todoAccess.createTodo({
     todoId: itemId,
     userId: userId,

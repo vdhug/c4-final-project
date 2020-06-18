@@ -22,11 +22,12 @@ export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGat
           item
         })
     }
-  } catch (error) {
+  } catch (e) {
+
     return {
         statusCode: 400,
         body: JSON.stringify({
-            error
+          message: e.message
         })
     }
   }
